@@ -22,14 +22,16 @@ jobs:
         run: pip install flet
 
       - name: Compilar APK con Flet
-        run: flet build apk --yes --verbose
+        run: flet build apk --yes
 
-      - name: Buscar el APK generado y mostrarlo
-        run: find build -name "*.apk" -type f -exec ls -lh {} \;
+      - name: Localizar el APK generado
+        run: |
+          echo "Buscando APK..."
+          find build -name "*.apk" -type f
 
-      - name: Subir carpeta build como artefacto
+      - name: Subir solo el APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: build/
-          if-no-files-found: error
+          name: apk
+          path: build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: warn
