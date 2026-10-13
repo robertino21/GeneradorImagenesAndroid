@@ -22,7 +22,7 @@ jobs:
         run: pip install flet
 
       - name: Compilar APK con Flet
-        run: flet build apk
+        run: flet build apk --yes --verbose
 
       - name: Subir APK como artefacto descargable
         uses: actions/upload-artifact@v4
