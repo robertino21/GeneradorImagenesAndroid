@@ -1,3 +1,4 @@
+import asyncio
 import flet as ft
 from PIL import Image, ImageDraw, ImageFont
 import os
@@ -83,7 +84,7 @@ def generar_imagen_texto(texto, ancho, alto, tam_fuente, color_texto, color_fond
 
 
 # ============================================================
-# App Flet
+# Aplicación Flet
 # ============================================================
 def main(page: ft.Page):
     page.title = "Generador de Imagen"
@@ -145,27 +146,27 @@ def main(page: ft.Page):
     async def on_generar(e):
         texto = campo_texto.value
         if not texto or not texto.strip():
-            await hablar("Ingresá un texto primero")
+            await hablar("Ingresa un texto primero")
             return
 
-        await hablar("Generando imagen, por favor esperá")
+        await hablar("Generando imagen, por favor espera")
 
         tam_fuente = int(slider_fuente.value)
         color_texto = COLORES.get(dropdown_color_texto.value, (255, 255, 255))
         color_fondo = COLORES.get(dropdown_color_fondo.value, (0, 0, 0))
 
         try:
-            ruta = generar_imagen_texto(
+            ruta = await asyncio.to_thread(
+                generar_imagen_texto,
                 texto=texto, ancho=ANCHO, alto=ALTO,
                 tam_fuente=tam_fuente,
                 color_texto=color_texto, color_fondo=color_fondo,
             )
             ultima_imagen["ruta"] = ruta
-            await hablar(f"Imagen guardada en {ruta}")
+            await hablar(f"Imagen guardada correctamente")
         except Exception as ex:
-            await hablar(f"Error al generar: {ex}")
+            await hablar(f"Error al generar la imagen")
 
-    # CORREGIDO: ft.Button en lugar de ft.ElevatedButton
     btn_generar = ft.Button(
         content="Generar imagen",
         on_click=on_generar,
@@ -175,11 +176,10 @@ def main(page: ft.Page):
     async def on_describir(e):
         ruta = ultima_imagen.get("ruta")
         if ruta and os.path.exists(ruta):
-            await hablar(f"La última imagen está en {ruta}")
+            await hablar(f"La última imagen se encuentra en {ruta}")
         else:
-            await hablar("Todavía no generaste ninguna imagen")
+            await hablar("Aún no has generado ninguna imagen")
 
-    # CORREGIDO: ft.Button en lugar de ft.ElevatedButton
     btn_describir = ft.Button(
         content="¿Dónde está la última imagen?",
         on_click=on_describir,
@@ -192,7 +192,7 @@ def main(page: ft.Page):
 
     page.add(
         ft.Text("Generador de Imagen con Texto", size=24, weight=ft.FontWeight.BOLD),
-        ft.Text("Escribí tu texto, elegí opciones y generá la imagen.", size=14, italic=True),
+        ft.Text("Escribe tu texto, elige las opciones y genera la imagen.", size=14, italic=True),
         ft.Divider(),
         campo_texto,
         ft.Text("Tamaño de fuente:", weight=ft.FontWeight.BOLD),
@@ -205,6 +205,5 @@ def main(page: ft.Page):
     )
 
 
-# CORREGIDO: ft.run en lugar de ft.app
 if __name__ == "__main__":
     ft.run(main)
