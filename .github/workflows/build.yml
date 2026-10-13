@@ -24,8 +24,12 @@ jobs:
       - name: Compilar APK con Flet
         run: flet build apk --yes --verbose
 
-      - name: Subir APK como artefacto descargable
+      - name: Buscar el APK generado y mostrarlo
+        run: find build -name "*.apk" -type f -exec ls -lh {} \;
+
+      - name: Subir carpeta build como artefacto
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: build/app/outputs/flutter-apk/*.apk
+          path: build/
+          if-no-files-found: error
