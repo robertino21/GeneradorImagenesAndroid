@@ -91,12 +91,18 @@ def main(page: ft.Page):
     page.scroll = ft.ScrollMode.ADAPTIVE
     page.padding = 20
 
-    async def hablar(texto: str):
-        # ⚠️ Cambio importante: announce_tooltip en lugar de announce_message
-        try:
-            await page.semantics_service.announce_tooltip(texto)
-        except Exception:
-            pass
+    # --- Widget invisible para anuncios con live region ---
+    anuncio_texto = ft.Text(value="", size=0, opacity=0)
+    anuncio_semantico = ft.Semantics(
+        label="",
+        live_region=True,
+        child=anuncio_texto
+    )
+
+    def hablar(texto: str):
+        """Cambia el texto del widget de anuncio para que TalkBack lo lea."""
+        anuncio_semantico.label = texto
+        page.update()
 
     campo_texto = ft.TextField(
         label="Texto a generar (multilínea)",
@@ -144,29 +150,28 @@ def main(page: ft.Page):
 
     ultima_imagen = {"ruta": None}
 
-    async def on_generar(e):
+    def on_generar(e):
         texto = campo_texto.value
         if not texto or not texto.strip():
-            await hablar("Ingresa un texto primero")
+            hablar("Ingresa un texto primero")
             return
 
-        await hablar("Generando imagen, por favor espera")
+        hablar("Generando imagen, por favor espera")
 
         tam_fuente = int(slider_fuente.value)
         color_texto = COLORES.get(dropdown_color_texto.value, (255, 255, 255))
         color_fondo = COLORES.get(dropdown_color_fondo.value, (0, 0, 0))
 
         try:
-            ruta = await asyncio.to_thread(
-                generar_imagen_texto,
+            ruta = generar_imagen_texto(
                 texto=texto, ancho=ANCHO, alto=ALTO,
                 tam_fuente=tam_fuente,
                 color_texto=color_texto, color_fondo=color_fondo,
             )
             ultima_imagen["ruta"] = ruta
-            await hablar("Imagen guardada correctamente")
+            hablar("Imagen guardada correctamente")
         except Exception as ex:
-            await hablar("Error al generar la imagen")
+            hablar("Error al generar la imagen")
 
     btn_generar = ft.Button(
         content="Generar imagen",
@@ -174,20 +179,20 @@ def main(page: ft.Page):
         height=50,
     )
 
-    async def on_describir(e):
+    def on_describir(e):
         ruta = ultima_imagen.get("ruta")
         if ruta and os.path.exists(ruta):
-            await hablar(f"La última imagen se encuentra en {ruta}")
+            hablar(f"La última imagen se encuentra en {ruta}")
         else:
-            await hablar("Aún no has generado ninguna imagen")
+            hablar("Aún no has generado ninguna imagen")
 
     btn_describir = ft.Button(
         content="¿Dónde está la última imagen?",
         on_click=on_describir,
     )
 
-    async def on_slider_change(e):
-        await hablar(f"Tamaño de fuente: {int(slider_fuente.value)}")
+    def on_slider_change(e):
+        hablar(f"Tamaño de fuente: {int(slider_fuente.value)}")
 
     slider_fuente.on_change = on_slider_change
 
@@ -203,6 +208,7 @@ def main(page: ft.Page):
         ft.Divider(),
         btn_generar,
         btn_describir,
+        anuncio_semantico,
     )
 
 
