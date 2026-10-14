@@ -92,8 +92,9 @@ def main(page: ft.Page):
     page.padding = 20
 
     async def hablar(texto: str):
+        # ⚠️ Cambio importante: announce_tooltip en lugar de announce_message
         try:
-            await page.semantics_service.announce_message(texto)
+            await page.semantics_service.announce_tooltip(texto)
         except Exception:
             pass
 
@@ -163,9 +164,9 @@ def main(page: ft.Page):
                 color_texto=color_texto, color_fondo=color_fondo,
             )
             ultima_imagen["ruta"] = ruta
-            await hablar(f"Imagen guardada correctamente")
+            await hablar("Imagen guardada correctamente")
         except Exception as ex:
-            await hablar(f"Error al generar la imagen")
+            await hablar("Error al generar la imagen")
 
     btn_generar = ft.Button(
         content="Generar imagen",
